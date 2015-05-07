@@ -29,7 +29,9 @@ def checkout(branch):
 
 def commitDetails(formatting, commit_range):
     # see http://git-scm.com/book/ch2-3.html for formatting options
-    return subprocess.check_output(['git', 'log', '--pretty=format:"' + formatting + '"', commit_range])
+    output = subprocess.check_output(['git', 'log', '--pretty=format:"' + formatting + '"', commit_range])
+    commits = output.split('\n') # each line is surrounded by quotes (e.g. '"1234 abcd"')
+    return [commit[1:-1] for commit in commits]
 
 def commitBody(long_sha):
     body = subprocess.check_output(['git', 'log', '--pretty=format:"%B"', '-n', '1', long_sha])
