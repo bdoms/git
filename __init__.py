@@ -17,6 +17,10 @@ def currentBranch():
     """ gets the name of the current branch """
     return subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).replace("\n", "")
 
+def currentUser():
+    """ gets the name of the current git user """
+    return subprocess.check_output(['git', 'config', 'user.name']).replace('\n', '')
+
 def checkout(branch):
     """ returns True if successful, False if there was an error """
     # git is stupid and puts out the success message for the checkout command on stderr instead of stdout
