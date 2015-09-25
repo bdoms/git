@@ -41,10 +41,24 @@ def commitBody(long_sha):
     body = subprocess.check_output(['git', 'log', '--pretty=format:"%B"', '-n', '1', long_sha])
     return body[1:-1].strip() # body is surrounded by quotes (e.g. '"commit message"')
 
-def remotesWithCommit(long_sha):
-    return subprocess.check_output(['git', 'branch', '-r', '--contains', long_sha])
+def branchesWithCommit(long_sha, remote=False):
+    command = ['git', 'branch']
+    if remote:
+        command.append('-r')
+    command.extend(['--contains', long_sha])
+    branches = []
+    output = subprocess.check_output(command)
+    if output:
+        for line in output.split('\n'):
+            branch = line.strip()
+            if branch:
+                branches.append(branch)
+    return branches
 
 def pushForced():
     pid = os.getppid()
     push_command = subprocess.check_output(['ps', '-ocommand=', '-p', str(pid)])
     return ('--force' in push_command or '-f' in push_command)
+
+def remotes():
+    return subprocess.check_output(['git', 'remote']).split('\n')
