@@ -55,10 +55,30 @@ def branchesWithCommit(long_sha, remote=False):
                 branches.append(branch)
     return branches
 
-def pushForced():
+def pushCommand():
     pid = os.getppid()
-    push_command = subprocess.check_output(['ps', '-ocommand=', '-p', str(pid)])
+    return subprocess.check_output(['ps', '-ocommand=', '-p', str(pid)])
+
+def pushForced():
+    """ returns True if the push was forced, False otherwise """
+    push_command = pushCommand()
     return ('--force' in push_command or '-f' in push_command)
+
+def pushRemote():
+    """ gets the name of the remote currently being pushed to """
+    push_command = pushCommand()
+    parts = push_command.split(' ')
+    if len(parts) > 2:
+        remote = parts[2]
+    else:
+        # the remote was not included in the command so we check the configuration
+        command = ['git', 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']
+        output = subprocess.check_output(command).replace('\n', '')
+        if 'fatal: ' not in output:
+            remote = output.split('/')[0]
+        else:
+            raise Exception('Remote could not be found.')
+    return remote
 
 def remotes():
     return subprocess.check_output(['git', 'remote']).split('\n')
