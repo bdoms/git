@@ -10,6 +10,9 @@ def installed():
     except OSError:
         return False
 
+def nonOptionArgs(args):
+    return [arg for arg in args if not arg.startswith('-')]
+
 def isRepository():
     output = subprocess.check_output(["git", "rev-parse", "--is-inside-work-tree"])
     return output.decode("utf-8").replace("\n", "") == "true"
@@ -63,7 +66,19 @@ def branchesWithCommit(long_sha, remote=False):
 def pushCommand():
     pid = os.getppid()
     output = subprocess.check_output(['ps', '-ocommand=', '-p', str(pid)])
-    return output.decode("utf-8")
+    return output.decode("utf-8").strip()
+
+def pushBranch():
+    """ gets the name of the branch currently being pushed to """
+    push_command = pushCommand()
+    parts = nonOptionArgs(push_command.split(' '))
+    if len(parts) > 3:
+        branch = parts[3]
+        if ':' in branch:
+            source, branch = branch.split(':')
+    else:
+        branch = currentBranch()
+    return branch
 
 def pushForced():
     """ returns True if the push was forced, False otherwise """
@@ -73,7 +88,7 @@ def pushForced():
 def pushRemote():
     """ gets the name of the remote currently being pushed to """
     push_command = pushCommand()
-    parts = push_command.split(' ')
+    parts = nonOptionArgs(push_command.split(' '))
     if len(parts) > 2:
         remote = parts[2]
     else:
